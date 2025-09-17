@@ -56,7 +56,7 @@ const Filters = () => {
           
           <div className="form-control pt-5">
             <button
-              className="btn btn-outline"
+              className="btn btn-primary"
               onClick={clearFilters}
             >
               Clear Filters
