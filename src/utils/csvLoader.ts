@@ -3,17 +3,17 @@ import type { DataUsageRecord } from '../types/data';
 
 export const loadCSVData = async (csvFile: string): Promise<DataUsageRecord[]> => {
   return new Promise((resolve, reject) => {
-    Papa.parse(csvFile, {
+    Papa.parse<DataUsageRecord>(csvFile, {
       header: true,
       skipEmptyLines: true,
       dynamicTyping: true,
       transformHeader: (header) => {
         // Remove unnamed index column (first column)
-        return header === '' ? null : header;
+        return header === '' ? '_unnamed' : header;
       },
       transform: (value, field) => {
         // Skip the unnamed index column
-        if (field === '' || field === null) {
+        if (field === '' || field === null || field === '_unnamed') {
           return undefined;
         }
         
