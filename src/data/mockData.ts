@@ -1,0 +1,69 @@
+export interface BiddingProject {
+  id: string;
+  projectName: string;
+  category: string;
+  bidValue: number;
+  bidder: string;
+  status: 'Open' | 'Awarded' | 'Closed';
+  datePosted: string;
+  latitude: number;
+  longitude: number;
+}
+
+export const mockData: BiddingProject[] = [
+  {
+    "id": "proj_12345",
+    "projectName": "Central City Bridge Refurbishment",
+    "category": "Construction",
+    "bidValue": 7500000,
+    "bidder": "Global Build Corp",
+    "status": "Open",
+    "datePosted": "2025-08-15T10:00:00Z",
+    "latitude": 34.0522,
+    "longitude": -118.2437
+  },
+  {
+    "id": "proj_67890",
+    "projectName": "City Hall IT Infrastructure Upgrade",
+    "category": "IT Services",
+    "bidValue": 1200000,
+    "bidder": "Secure Tech Solutions",
+    "status": "Awarded",
+    "datePosted": "2025-07-20T14:30:00Z",
+    "latitude": 34.0550,
+    "longitude": -118.2450
+  },
+  {
+    "id": "proj_10112",
+    "projectName": "Downtown Parks Landscaping Services",
+    "category": "Services",
+    "bidValue": 450000,
+    "bidder": "GreenScape Inc.",
+    "status": "Open",
+    "datePosted": "2025-09-01T09:00:00Z",
+    "latitude": 34.0488,
+    "longitude": -118.2510
+  },
+  {
+    "id": "proj_13141",
+    "projectName": "Public Library West Wing Expansion",
+    "category": "Construction",
+    "bidValue": 15000000,
+    "bidder": "Mega Constructions Ltd.",
+    "status": "Closed",
+    "datePosted": "2025-06-10T11:00:00Z",
+    "latitude": 40.7128,
+    "longitude": -74.0060
+  },
+  {
+    "id": "proj_15161",
+    "projectName": "Municipal Fleet Vehicle Procurement",
+    "category": "Procurement",
+    "bidValue": 2300000,
+    "bidder": "Auto Fleet Providers",
+    "status": "Open",
+    "datePosted": "2025-09-10T16:00:00Z",
+    "latitude": 40.7150,
+    "longitude": -74.0085
+  }
+];
