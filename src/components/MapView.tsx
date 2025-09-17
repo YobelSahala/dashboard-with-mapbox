@@ -1,33 +1,35 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import Map, { Marker } from 'react-map-gl';
 import { useFilterStore } from '../store/useFilterStore';
+import { loadCSVData } from '../utils/csvLoader';
+import type { DataUsageRecord } from '../types/data';
 
-interface DataUsageRecord {
-  msisdn: string;
-  current_billing_status: string;
-  data_usage_raw_total: number;
-  apn_name: string;
-  event_date: string;
-  is_use_internet: string;
-  latitude: number;
-  longitude: number;
-  provinsi: string;
-  kabupaten: string;
-  kecamatan: string;
-  kelurahan: string;
-  area: string;
-  region: string;
-}
-
-// Import all real data
-import realDataJson from '../../real_data.json';
-const mockData: DataUsageRecord[] = realDataJson as DataUsageRecord[];
+// Import CSV file as text
+import csvData from '../../data.csv?raw';
 
 const MapView = () => {
   const { category, status, search } = useFilterStore();
+  const [data, setData] = useState<DataUsageRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const parsedData = await loadCSVData(csvData);
+        setData(parsedData);
+      } catch (err) {
+        console.error('❌ Failed to load CSV for map:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const filteredData = useMemo(() => {
-    return mockData.filter(record => {
+    return data.filter(record => {
       const matchesCategory = !category || record.region === category;
       const matchesStatus = !status || record.current_billing_status === status;
       const matchesSearch = !search || 
@@ -37,7 +39,7 @@ const MapView = () => {
       
       return matchesCategory && matchesStatus && matchesSearch;
     });
-  }, [category, status, search]);
+  }, [data, category, status, search]);
 
   // Calculate center point of visible markers
   const mapCenter = useMemo(() => {
@@ -71,6 +73,19 @@ const MapView = () => {
       default: return '#6b7280'; // gray
     }
   };
+
+  if (loading) {
+    return (
+      <div className="h-[500px] w-full rounded-lg overflow-hidden flex items-center justify-center bg-base-200">
+        <div className="text-center">
+          <div className="loading loading-spinner loading-lg"></div>
+          <div className="mt-4 text-sm text-base-content/70">
+            Loading map data...
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-[500px] w-full rounded-lg overflow-hidden">

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -9,32 +9,41 @@ import {
   createColumnHelper,
 } from '@tanstack/react-table';
 import { useFilterStore } from '../store/useFilterStore';
+import { loadCSVData } from '../utils/csvLoader';
+import type { DataUsageRecord } from '../types/data';
 
-interface DataUsageRecord {
-  msisdn: string;
-  current_billing_status: string;
-  data_usage_raw_total: number;
-  apn_name: string;
-  event_date: string;
-  is_use_internet: string;
-  latitude: number;
-  longitude: number;
-  provinsi: string;
-  kabupaten: string;
-  kecamatan: string;
-  kelurahan: string;
-  area: string;
-  region: string;
-}
-
-// Import all real data
-import realDataJson from '../../real_data.json';
-const mockData: DataUsageRecord[] = realDataJson as DataUsageRecord[];
+// Import CSV file as text
+import csvData from '../../data.csv?raw';
 
 const columnHelper = createColumnHelper<DataUsageRecord>();
 
 const DataTable = () => {
   const { category, status, search } = useFilterStore();
+  const [data, setData] = useState<DataUsageRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        console.log('🚀 Starting CSV parsing...');
+        
+        const parsedData = await loadCSVData(csvData);
+        setData(parsedData);
+        
+        console.log('✅ CSV parsing completed!');
+      } catch (err) {
+        console.error('❌ Failed to load CSV:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const columns = useMemo(
     () => [
@@ -97,7 +106,7 @@ const DataTable = () => {
   );
 
   const filteredData = useMemo(() => {
-    return mockData.filter(record => {
+    return data.filter(record => {
       const matchesCategory = !category || record.region === category;
       const matchesStatus = !status || record.current_billing_status === status;
       const matchesSearch = !search || 
@@ -107,7 +116,7 @@ const DataTable = () => {
       
       return matchesCategory && matchesStatus && matchesSearch;
     });
-  }, [category, status, search]);
+  }, [data, category, status, search]);
 
   const table = useReactTable({
     data: filteredData,
@@ -123,8 +132,34 @@ const DataTable = () => {
     },
   });
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="loading loading-spinner loading-lg"></div>
+          <div className="mt-4 text-sm text-base-content/70">
+            Loading CSV data... This may take a moment for large files.
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="alert alert-error">
+        <div>
+          <strong>Error loading data:</strong> {error}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
+      <div className="mb-4 text-sm text-base-content/70">
+        📊 Loaded {data.length} records from CSV | Showing {filteredData.length} after filters
+      </div>
       <table className="table table-zebra w-full">
         <thead>
           {table.getHeaderGroups().map(headerGroup => (
