@@ -110,9 +110,9 @@ const DataTable = () => {
       const matchesCategory = !category || record.region === category;
       const matchesStatus = !status || record.current_billing_status === status;
       const matchesSearch = !search || 
-        record.msisdn.toLowerCase().includes(search.toLowerCase()) ||
-        record.kelurahan.toLowerCase().includes(search.toLowerCase()) ||
-        record.kecamatan.toLowerCase().includes(search.toLowerCase());
+        (record.msisdn && record.msisdn.toString().toLowerCase().includes(search.toLowerCase())) ||
+        (record.kelurahan && record.kelurahan.toString().toLowerCase().includes(search.toLowerCase())) ||
+        (record.kecamatan && record.kecamatan.toString().toLowerCase().includes(search.toLowerCase()));
       
       return matchesCategory && matchesStatus && matchesSearch;
     });
