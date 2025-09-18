@@ -32,8 +32,18 @@ const Filters = () => {
               onChange={(e) => setCategory(e.target.value)}
             >
               <option value="">All Regions</option>
+              <option value="BALI NUSRA">Bali Nusra</option>
               <option value="CENTRAL JABOTABEK">Central Jabotabek</option>
               <option value="EASTERN JABOTABEK">Eastern Jabotabek</option>
+              <option value="JABAR">Jabar</option>
+              <option value="JATENG-DIY">Jateng-DIY</option>
+              <option value="JATIM">Jatim</option>
+              <option value="KALIMANTAN">Kalimantan</option>
+              <option value="MALUKU DAN PAPUA">Maluku dan Papua</option>
+              <option value="SULAWESI">Sulawesi</option>
+              <option value="SUMBAGSEL">Sumbagsel</option>
+              <option value="SUMBAGTENG">Sumbagteng</option>
+              <option value="SUMBAGUT">Sumbagut</option>
               <option value="WESTERN JABOTABEK">Western Jabotabek</option>
             </select>
           </div>
