@@ -1,5 +1,6 @@
-import { useMemo, useEffect, useState } from 'react';
-import Map, { Marker } from 'react-map-gl';
+import { useMemo, useEffect, useState, useRef } from 'react';
+import Map, { Source, Layer } from 'react-map-gl';
+import type { LayerProps, MapRef } from 'react-map-gl';
 import { useFilterStore } from '../store/useFilterStore';
 import { loadCSVData } from '../utils/csvLoader';
 import type { DataUsageRecord } from '../types/data';
@@ -11,6 +12,7 @@ const MapView = () => {
   const { category, status, search } = useFilterStore();
   const [data, setData] = useState<DataUsageRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const mapRef = useRef<MapRef>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -53,25 +55,108 @@ const MapView = () => {
     return { lat: avgLat, lng: avgLng };
   }, [filteredData]);
 
-  // Calculate marker size based on data usage
-  const getMarkerSize = (dataUsage: number) => {
-    if (!dataUsage || dataUsage <= 0) return 15;
-    const maxValue = Math.max(...filteredData.map(p => p.data_usage_raw_total || 0));
-    if (maxValue === 0) return 15;
-    const minSize = 15;
-    const maxSize = 45;
-    
-    return minSize + ((dataUsage / maxValue) * (maxSize - minSize));
+  // Convert filtered data to GeoJSON for clustering
+  const geoJsonData = useMemo(() => ({
+    type: 'FeatureCollection' as const,
+    features: filteredData.map((record, index) => ({
+      type: 'Feature' as const,
+      properties: {
+        id: `${record.msisdn}-${index}`,
+        msisdn: record.msisdn,
+        data_usage: record.data_usage_raw_total || 0,
+        billing_status: record.current_billing_status,
+        location: record.kelurahan,
+        region: record.region
+      },
+      geometry: {
+        type: 'Point' as const,
+        coordinates: [record.longitude, record.latitude]
+      }
+    }))
+  }), [filteredData]);
+
+  // Cluster layer styles
+  const clusterLayer: LayerProps = {
+    id: 'clusters',
+    type: 'circle',
+    filter: ['has', 'point_count'],
+    paint: {
+      'circle-color': [
+        'step',
+        ['get', 'point_count'],
+        '#51bbd6',
+        10,
+        '#f1f075',
+        30,
+        '#f28cb1'
+      ],
+      'circle-radius': [
+        'step',
+        ['get', 'point_count'],
+        15,
+        10,
+        20,
+        30,
+        25
+      ]
+    }
   };
 
-  // Get marker color based on billing status
-  const getMarkerColor = (status: string) => {
-    switch (status) {
-      case 'IN-BILLING': return '#10b981'; // green
-      case 'OUT-OF-BILLING': return '#f59e0b'; // yellow
-      case 'SUSPENDED': return '#ef4444'; // red
-      default: return '#6b7280'; // gray
+  const clusterCountLayer: LayerProps = {
+    id: 'cluster-count',
+    type: 'symbol',
+    filter: ['has', 'point_count'],
+    layout: {
+      'text-field': '{point_count_abbreviated}',
+      'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+      'text-size': 12
+    },
+    paint: {
+      'text-color': '#ffffff'
     }
+  };
+
+  const unclusteredPointLayer: LayerProps = {
+    id: 'unclustered-point',
+    type: 'circle',
+    filter: ['!', ['has', 'point_count']],
+    paint: {
+      'circle-color': [
+        'case',
+        ['==', ['get', 'billing_status'], 'IN-BILLING'], '#10b981',
+        ['==', ['get', 'billing_status'], 'OUT-OF-BILLING'], '#f59e0b',
+        ['==', ['get', 'billing_status'], 'SUSPENDED'], '#ef4444',
+        '#6b7280'
+      ],
+      'circle-radius': [
+        'interpolate',
+        ['linear'],
+        ['get', 'data_usage'],
+        0, 8,
+        1000000, 20
+      ],
+      'circle-stroke-width': 2,
+      'circle-stroke-color': '#ffffff'
+    }
+  };
+
+  // Handle cluster click to zoom in
+  const onClusterClick = (event: any) => {
+    const feature = event.features?.[0];
+    if (!feature || !mapRef.current) return;
+
+    const clusterId = feature.properties.cluster_id;
+    const mapboxSource = mapRef.current.getSource('data-usage') as any;
+
+    mapboxSource.getClusterExpansionZoom(clusterId, (err: any, zoom: number) => {
+      if (err || !mapRef.current) return;
+
+      mapRef.current.easeTo({
+        center: feature.geometry.coordinates,
+        zoom,
+        duration: 500
+      });
+    });
   };
 
   if (loading) {
@@ -90,6 +175,7 @@ const MapView = () => {
   return (
     <div className="h-[500px] w-full rounded-lg overflow-hidden">
       <Map
+        ref={mapRef}
         mapboxAccessToken={import.meta.env.VITE_MAPBOX_API_KEY}
         initialViewState={{
           longitude: mapCenter.lng,
@@ -98,30 +184,21 @@ const MapView = () => {
         }}
         style={{ width: '100%', height: '100%' }}
         mapStyle="mapbox://styles/mapbox/streets-v12"
+        interactiveLayerIds={['clusters', 'unclustered-point']}
+        onClick={onClusterClick}
       >
-        {filteredData.map((record, index) => (
-          <Marker
-            key={`${record.msisdn}-${index}`}
-            longitude={record.longitude}
-            latitude={record.latitude}
-          >
-            <div
-              className="rounded-full border-2 border-white shadow-lg cursor-pointer transform hover:scale-110 transition-transform flex items-center justify-center text-white font-bold text-xs"
-              style={{
-                width: getMarkerSize(record.data_usage_raw_total),
-                height: getMarkerSize(record.data_usage_raw_total),
-                backgroundColor: getMarkerColor(record.current_billing_status),
-              }}
-              title={`${record.kelurahan} - ${record.data_usage_raw_total ? (record.data_usage_raw_total / (1024 * 1024)).toFixed(2) : '0'} MB`}
-            >
-              {record.data_usage_raw_total ? 
-                (record.data_usage_raw_total >= 1024 * 1024 ? 
-                  `${(record.data_usage_raw_total / (1024 * 1024)).toFixed(0)}MB` : 
-                  `${(record.data_usage_raw_total / 1024).toFixed(0)}KB`
-                ) : '0'}
-            </div>
-          </Marker>
-        ))}
+        <Source
+          id="data-usage"
+          type="geojson"
+          data={geoJsonData}
+          cluster={true}
+          clusterMaxZoom={14}
+          clusterRadius={50}
+        >
+          <Layer {...clusterLayer} />
+          <Layer {...clusterCountLayer} />
+          <Layer {...unclusteredPointLayer} />
+        </Source>
       </Map>
       
       {/* Legend */}
@@ -140,8 +217,13 @@ const MapView = () => {
             <div className="w-3 h-3 rounded-full bg-red-500"></div>
             <span>Suspended</span>
           </div>
-          <div className="text-xs mt-2 text-base-content/70">
-            Circle size = Data usage
+          <div className="mt-2 space-y-1">
+            <div className="text-xs text-base-content/70">
+              Circle size = Data usage
+            </div>
+            <div className="text-xs text-base-content/70">
+              Click clusters to zoom in
+            </div>
           </div>
         </div>
       </div>
