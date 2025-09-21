@@ -174,7 +174,7 @@ const MapView = () => {
   }
 
   return (
-    <div className="h-[500px] w-full rounded-lg overflow-hidden">
+    <div className="h-[490px] w-full rounded-lg overflow-hidden">
       <Map
         ref={mapRef}
         mapboxAccessToken={import.meta.env.VITE_MAPBOX_API_KEY}

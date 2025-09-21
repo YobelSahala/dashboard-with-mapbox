@@ -10,9 +10,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <div className="min-h-screen bg-base-200">
         <div className="container mx-auto p-4">
-          <h1 className="text-4xl font-bold text-center text-base-content mb-6">
+          {/* <h1 className="text-4xl font-bold text-center text-base-content mb-6">
             CMP Analytics Dashboard
-          </h1>
+          </h1> */}
 
           <div className="flex gap-6">
             {/* Left Sidebar - Filters */}
