@@ -7,8 +7,8 @@ const Filters = () => {
     <div className="card bg-base-100 shadow-xl">
       <div className="card-body">
         <h2 className="card-title">Filters</h2>
-        
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+        <div className="space-y-4">
           <div className="form-control">
             <label className="label">
               <span className="label-text">Search</span>
@@ -16,18 +16,18 @@ const Filters = () => {
             <input
               type="text"
               placeholder="Search MSISDN or location..."
-              className="input input-bordered"
+              className="input input-bordered w-full"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          
+
           <div className="form-control">
             <label className="label">
               <span className="label-text">Region</span>
             </label>
             <select
-              className="select select-bordered"
+              className="select select-bordered w-full"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
@@ -47,26 +47,27 @@ const Filters = () => {
               <option value="WESTERN JABOTABEK">Western Jabotabek</option>
             </select>
           </div>
-          
+
           <div className="form-control">
             <label className="label">
               <span className="label-text">Billing Status</span>
             </label>
             <select
-              className="select select-bordered"
+              className="select select-bordered w-full"
               value={status}
               onChange={(e) => setStatus(e.target.value)}
             >
               <option value="">All Statuses</option>
               <option value="IN-BILLING">In Billing</option>
-              <option value="OUT-OF-BILLING">Out of Billing</option>
+              <option value="IN-TESTING">In Testing</option>
               <option value="SUSPENDED">Suspended</option>
+              <option value="RETIRED">Retired</option>
             </select>
           </div>
-          
-          <div className="form-control pt-5">
+
+          <div className="form-control">
             <button
-              className="btn btn-primary"
+              className="btn btn-primary w-full"
               onClick={clearFilters}
             >
               Clear Filters

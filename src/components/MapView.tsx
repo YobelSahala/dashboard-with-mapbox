@@ -124,8 +124,9 @@ const MapView = () => {
       'circle-color': [
         'case',
         ['==', ['get', 'billing_status'], 'IN-BILLING'], '#10b981',
-        ['==', ['get', 'billing_status'], 'OUT-OF-BILLING'], '#f59e0b',
+        ['==', ['get', 'billing_status'], 'IN-TESTING'], '#3b82f6',
         ['==', ['get', 'billing_status'], 'SUSPENDED'], '#ef4444',
+        ['==', ['get', 'billing_status'], 'RETIRED'], '#6b7280',
         '#6b7280'
       ],
       'circle-radius': [
@@ -202,28 +203,32 @@ const MapView = () => {
       </Map>
       
       {/* Legend */}
-      <div className="absolute bottom-4 left-4 bg-base-100 p-3 rounded-lg shadow-lg">
+      <div className="absolute bottom-8 left-8 bg-base-100 p-3 rounded-lg shadow-lg">
         <h4 className="font-semibold text-sm mb-2">Legend</h4>
-        <div className="space-y-1 text-xs">
+        <div className="grid grid-cols-2 gap-2 text-xs mb-3">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-green-500"></div>
             <span>In Billing</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-            <span>Out of Billing</span>
+            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+            <span>In Testing</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded-full bg-red-500"></div>
             <span>Suspended</span>
           </div>
-          <div className="mt-2 space-y-1">
-            <div className="text-xs text-base-content/70">
-              Circle size = Data usage
-            </div>
-            <div className="text-xs text-base-content/70">
-              Click clusters to zoom in
-            </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded-full bg-gray-500"></div>
+            <span>Retired</span>
+          </div>
+        </div>
+        <div className="space-y-1">
+          <div className="text-xs text-base-content/70">
+            Circle size = Data usage
+          </div>
+          <div className="text-xs text-base-content/70">
+            Click clusters to zoom in
           </div>
         </div>
       </div>
