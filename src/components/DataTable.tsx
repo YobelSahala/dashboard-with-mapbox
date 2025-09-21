@@ -18,7 +18,7 @@ import csvData from '../../data.csv?raw';
 const columnHelper = createColumnHelper<DataUsageRecord>();
 
 const DataTable = () => {
-  const { category, status, search } = useFilterStore();
+  const { category, status, search, apn } = useFilterStore();
   const [data, setData] = useState<DataUsageRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,14 +109,15 @@ const DataTable = () => {
     return data.filter(record => {
       const matchesCategory = !category || record.region === category;
       const matchesStatus = !status || record.current_billing_status === status;
-      const matchesSearch = !search || 
+      const matchesApn = !apn || record.apn_name === apn;
+      const matchesSearch = !search ||
         (record.msisdn && record.msisdn.toString().toLowerCase().includes(search.toLowerCase())) ||
         (record.kelurahan && record.kelurahan.toString().toLowerCase().includes(search.toLowerCase())) ||
         (record.kecamatan && record.kecamatan.toString().toLowerCase().includes(search.toLowerCase()));
-      
-      return matchesCategory && matchesStatus && matchesSearch;
+
+      return matchesCategory && matchesStatus && matchesApn && matchesSearch;
     });
-  }, [data, category, status, search]);
+  }, [data, category, status, apn, search]);
 
   const table = useReactTable({
     data: filteredData,

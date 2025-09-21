@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { FcBullish, FcBearish } from "react-icons/fc";
 import { loadCSVData } from '../utils/csvLoader';
+import { useFilterStore } from '../store/useFilterStore';
 import csvData from '../../data.csv?raw';
 
 const Overview = () => {
+  const { category, status, search, apn } = useFilterStore();
   const [data, setData] = useState({
     usage: {
       total_usage: '0 GB',
@@ -24,14 +26,42 @@ const Overview = () => {
       try {
         setLoading(true);
         const records = await loadCSVData(csvData);
+        console.log('🔍 Debug Overview - Total records loaded:', records.length);
 
-        // Filter by dates
-        const todayRecords = records.filter(record => record.event_date === '2025-08-04');
-        const yesterdayRecords = records.filter(record => record.event_date === '2025-08-03');
+        // Filter by dates and applied filters
+        const todayRecords = records.filter(record => {
+          const matchesDate = record.event_date === '2025-08-04';
+          const matchesCategory = !category || record.region === category;
+          const matchesStatus = !status || record.current_billing_status === status;
+          const matchesApn = !apn || record.apn_name === apn;
+          const matchesSearch = !search ||
+            (record.msisdn && record.msisdn.toString().toLowerCase().includes(search.toLowerCase())) ||
+            (record.kelurahan && record.kelurahan.toString().toLowerCase().includes(search.toLowerCase())) ||
+            (record.kecamatan && record.kecamatan.toString().toLowerCase().includes(search.toLowerCase()));
+
+          return matchesDate && matchesCategory && matchesStatus && matchesApn && matchesSearch;
+        });
+        console.log('🔍 Debug Overview - Today records after filtering:', todayRecords.length);
+
+        const yesterdayRecords = records.filter(record => {
+          const matchesDate = record.event_date === '2025-08-03';
+          const matchesCategory = !category || record.region === category;
+          const matchesStatus = !status || record.current_billing_status === status;
+          const matchesApn = !apn || record.apn_name === apn;
+          const matchesSearch = !search ||
+            (record.msisdn && record.msisdn.toString().toLowerCase().includes(search.toLowerCase())) ||
+            (record.kelurahan && record.kelurahan.toString().toLowerCase().includes(search.toLowerCase())) ||
+            (record.kecamatan && record.kecamatan.toString().toLowerCase().includes(search.toLowerCase()));
+
+          return matchesDate && matchesCategory && matchesStatus && matchesApn && matchesSearch;
+        });
+        console.log('🔍 Debug Overview - Yesterday records after filtering:', yesterdayRecords.length);
 
         // Calculate total usage
         const todayTotal = todayRecords.reduce((sum, record) => sum + (record.data_usage_raw_total || 0), 0);
         const yesterdayTotal = yesterdayRecords.reduce((sum, record) => sum + (record.data_usage_raw_total || 0), 0);
+        console.log('🔍 Debug Overview - Today total bytes:', todayTotal);
+        console.log('🔍 Debug Overview - Yesterday total bytes:', yesterdayTotal);
 
         // Calculate percentage difference
         const percentageDiff = yesterdayTotal > 0 ?
@@ -77,7 +107,7 @@ const Overview = () => {
     };
 
     processData();
-  }, []);
+  }, [category, status, search, apn]);
 
   // Dynamic unit conversion
   const formatDataUsage = (bytes: number): string => {

@@ -1,7 +1,7 @@
 import { useFilterStore } from '../store/useFilterStore';
 
 const Filters = () => {
-  const { category, status, search, setCategory, setStatus, setSearch, clearFilters } = useFilterStore();
+  const { category, status, search, apn, setCategory, setStatus, setSearch, setApn, clearFilters } = useFilterStore();
 
   return (
     <div className="card bg-base-100 shadow-xl">
@@ -20,6 +20,21 @@ const Filters = () => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+          </div>
+
+          <div className="form-control space-y-1">
+            <label className="label">
+              <span className="label-text">APN Name</span>
+            </label>
+            <select
+              className="select select-bordered w-full"
+              value={apn}
+              onChange={(e) => setApn(e.target.value)}
+            >
+              <option value="">All APNs</option>
+              <option value="EDCBCATSEL">EDCBCATSEL</option>
+              <option value="AM2MDEFAULT">AM2MDEFAULT</option>
+            </select>
           </div>
 
           <div className="form-control space-y-1">
