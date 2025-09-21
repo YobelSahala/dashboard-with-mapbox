@@ -9,7 +9,7 @@ const Filters = () => {
         <h2 className="card-title">Filters</h2>
 
         <div className="space-y-4">
-          <div className="form-control">
+          <div className="form-control space-y-1">
             <label className="label">
               <span className="label-text">Search</span>
             </label>
@@ -22,7 +22,7 @@ const Filters = () => {
             />
           </div>
 
-          <div className="form-control">
+          <div className="form-control space-y-1">
             <label className="label">
               <span className="label-text">Region</span>
             </label>
@@ -48,7 +48,7 @@ const Filters = () => {
             </select>
           </div>
 
-          <div className="form-control">
+          <div className="form-control space-y-1">
             <label className="label">
               <span className="label-text">Billing Status</span>
             </label>
@@ -65,7 +65,7 @@ const Filters = () => {
             </select>
           </div>
 
-          <div className="form-control">
+          <div className="form-control space-y-1">
             <button
               className="btn btn-primary w-full"
               onClick={clearFilters}
