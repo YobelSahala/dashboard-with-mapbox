@@ -9,7 +9,7 @@ import type { DataUsageRecord } from '../types/data';
 import csvData from '../../data.csv?raw';
 
 const MapView = () => {
-  const { category, status, search, apn } = useFilterStore();
+  const { category, status, search, apn, mapType } = useFilterStore();
   const [data, setData] = useState<DataUsageRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [popupInfo, setPopupInfo] = useState<{
@@ -182,6 +182,14 @@ const MapView = () => {
     setPopupInfo(null);
   };
 
+  // Map type style mapping
+  const mapStyleUrls = {
+    'Basic': 'mapbox://styles/mapbox/streets-v12',
+    'Vibrant': 'mapbox://styles/mapbox/outdoors-v12',
+    'Satellite': 'mapbox://styles/mapbox/satellite-streets-v12',
+    'Dark': 'mapbox://styles/mapbox/dark-v11'
+  };
+
   if (loading) {
     return (
       <div className="h-[500px] w-full rounded-lg overflow-hidden flex items-center justify-center bg-base-200">
@@ -206,7 +214,7 @@ const MapView = () => {
           zoom: 6
         }}
         style={{ width: '100%', height: '100%' }}
-        mapStyle="mapbox://styles/mapbox/streets-v12"
+        mapStyle={mapStyleUrls[mapType as keyof typeof mapStyleUrls] || mapStyleUrls.Basic}
         interactiveLayerIds={['clusters', 'unclustered-point']}
         onClick={onClusterClick}
         onMouseEnter={onMouseEnter}

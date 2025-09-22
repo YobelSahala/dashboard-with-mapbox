@@ -1,7 +1,7 @@
 import { useFilterStore } from '../store/useFilterStore';
 
 const Filters = () => {
-  const { category, status, search, apn, setCategory, setStatus, setSearch, setApn, clearFilters } = useFilterStore();
+  const { category, status, search, apn, mapType, setCategory, setStatus, setSearch, setApn, setMapType, clearFilters } = useFilterStore();
 
   return (
     <div className="card bg-base-100 shadow-xl">
@@ -77,6 +77,22 @@ const Filters = () => {
               <option value="IN-TESTING">In Testing</option>
               <option value="SUSPENDED">Suspended</option>
               <option value="RETIRED">Retired</option>
+            </select>
+          </div>
+
+          <div className="form-control space-y-1">
+            <label className="label">
+              <span className="label-text">Map Type</span>
+            </label>
+            <select
+              className="select select-bordered w-full"
+              value={mapType}
+              onChange={(e) => setMapType(e.target.value)}
+            >
+              <option value="Basic">Basic</option>
+              <option value="Vibrant">Vibrant</option>
+              <option value="Satellite">Satellite</option>
+              <option value="Dark">Dark</option>
             </select>
           </div>
 
