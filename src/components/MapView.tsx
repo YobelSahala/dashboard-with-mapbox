@@ -87,7 +87,7 @@ const MapView = () => {
         ['get', 'point_count'],
         '#51bbd6',
         10,
-        '#f1f075',
+        '#e49a4c',
         30,
         '#f28cb1'
       ],
