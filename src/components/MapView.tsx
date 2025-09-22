@@ -1,5 +1,5 @@
 import { useMemo, useEffect, useState, useRef } from 'react';
-import Map, { Source, Layer } from 'react-map-gl';
+import Map, { Source, Layer, Popup } from 'react-map-gl';
 import type { LayerProps, MapRef } from 'react-map-gl';
 import { useFilterStore } from '../store/useFilterStore';
 import { loadCSVData } from '../utils/csvLoader';
@@ -12,6 +12,11 @@ const MapView = () => {
   const { category, status, search, apn } = useFilterStore();
   const [data, setData] = useState<DataUsageRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [popupInfo, setPopupInfo] = useState<{
+    longitude: number;
+    latitude: number;
+    properties: any;
+  } | null>(null);
   const mapRef = useRef<MapRef>(null);
 
   useEffect(() => {
@@ -161,6 +166,22 @@ const MapView = () => {
     });
   };
 
+  // Handle mouse events for popup
+  const onMouseEnter = (event: any) => {
+    const feature = event.features?.[0];
+    if (feature && !feature.properties.cluster_id) {
+      setPopupInfo({
+        longitude: feature.geometry.coordinates[0],
+        latitude: feature.geometry.coordinates[1],
+        properties: feature.properties
+      });
+    }
+  };
+
+  const onMouseLeave = () => {
+    setPopupInfo(null);
+  };
+
   if (loading) {
     return (
       <div className="h-[500px] w-full rounded-lg overflow-hidden flex items-center justify-center bg-base-200">
@@ -175,7 +196,7 @@ const MapView = () => {
   }
 
   return (
-    <div className="h-[490px] w-full rounded-lg overflow-hidden">
+    <div className="h-[600px] w-full rounded-lg overflow-hidden">
       <Map
         ref={mapRef}
         mapboxAccessToken={import.meta.env.VITE_MAPBOX_API_KEY}
@@ -188,6 +209,8 @@ const MapView = () => {
         mapStyle="mapbox://styles/mapbox/streets-v12"
         interactiveLayerIds={['clusters', 'unclustered-point']}
         onClick={onClusterClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
       >
         <Source
           id="data-usage"
@@ -201,10 +224,64 @@ const MapView = () => {
           <Layer {...clusterCountLayer} />
           <Layer {...unclusteredPointLayer} />
         </Source>
+
+        {/* Hover Popup */}
+        {popupInfo && (
+          <Popup
+            longitude={popupInfo.longitude}
+            latitude={popupInfo.latitude}
+            closeButton={false}
+            closeOnClick={false}
+            anchor="bottom"
+            className="popup"
+          >
+            <div className="p-3 text-sm min-w-[200px]">
+              <div className="font-semibold text-base-content mb-2">
+                Usage Details
+              </div>
+              
+              <div className="space-y-1 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-base-content/70">MSISDN:</span>
+                  <span className="font-medium">{popupInfo.properties.msisdn}</span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span className="text-base-content/70">Data Usage:</span>
+                  <span className="font-medium">
+                    {(popupInfo.properties.data_usage / 1024 / 1024).toFixed(4)} MB
+                  </span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span className="text-base-content/70">Status:</span>
+                  <span className={`font-medium px-2 py-1 rounded text-xs ${
+                    popupInfo.properties.billing_status === 'IN-BILLING' ? 'bg-green-100 text-green-800' :
+                    popupInfo.properties.billing_status === 'IN-TESTING' ? 'bg-blue-100 text-blue-800' :
+                    popupInfo.properties.billing_status === 'SUSPENDED' ? 'bg-red-100 text-red-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {popupInfo.properties.billing_status}
+                  </span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span className="text-base-content/70">Location:</span>
+                  <span className="font-medium">{popupInfo.properties.location}</span>
+                </div>
+                
+                <div className="flex justify-between">
+                  <span className="text-base-content/70">Region:</span>
+                  <span className="font-medium">{popupInfo.properties.region}</span>
+                </div>
+              </div>
+            </div>
+          </Popup>
+        )}
       </Map>
       
       {/* Legend */}
-      <div className="absolute bottom-8 left-8 bg-base-100 p-3 rounded-lg shadow-lg">
+      <div className="absolute top-16 left-7 bg-base-100 p-3 rounded-lg shadow-lg">
         <h4 className="font-semibold text-sm mb-2">Legend</h4>
         <div className="grid grid-cols-2 gap-2 text-xs mb-3">
           <div className="flex items-center gap-2">
